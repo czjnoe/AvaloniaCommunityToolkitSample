@@ -1,0 +1,29 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AvaloniaCommunityToolkitSample.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
+        x:Class="AvaloniaCommunityToolkitSample.Views.UserEditWindow"
+        x:DataType="vm:UserEditViewModel"
+        Title="{Binding DisplayTitle}"
+        Width="400" Height="350"
+        WindowStartupLocation="CenterOwner">
+
+
+    <StackPanel Margin="20" Spacing="16">
+        <TextBlock Text="姓名：" FontWeight="SemiBold"/>
+        <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="请输入姓名"/>
+
+        <TextBlock Text="邮箱：" FontWeight="SemiBold"/>
+        <TextBox Text="{Binding Email, Mode=TwoWay}" Watermark="请输入邮箱"/>
+
+        <TextBlock Text="电话：" FontWeight="SemiBold"/>
+        <TextBox Text="{Binding Phone, Mode=TwoWay}" Watermark="请输入电话"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12" Margin="0,24,0,0">
+            <Button Content="取消" Command="{Binding CancelCommand}"/>
+            <Button Content="保存" Command="{Binding SaveCommand}" Classes="accent"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
