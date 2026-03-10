@@ -19,6 +19,8 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     private readonly IMessenger _messenger;
     private readonly Func<User?, UserEditViewModel> _userEditViewModelFactory;
     private readonly Func<UserEditViewModel, Views.UserEditWindow> _userEditWindowFactory;
+    private readonly Func<SettingsViewModel> _settingsViewModelFactory;
+    private readonly Func<SettingsViewModel, Views.SettingsWindow> _settingsWindowFactory;
 
     private const int MaxLogs = 100;
     private readonly ObservableFixedSizeRingBuffer<string> _logBuffer = new(MaxLogs);
@@ -38,12 +40,16 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
         IUserService userService,
         IMessenger messenger,
         Func<User?, UserEditViewModel> userEditViewModelFactory,
-        Func<UserEditViewModel, Views.UserEditWindow> userEditWindowFactory)
+        Func<UserEditViewModel, Views.UserEditWindow> userEditWindowFactory,
+        Func<SettingsViewModel> settingsViewModelFactory,
+        Func<SettingsViewModel, Views.SettingsWindow> settingsWindowFactory)
     {
         _userService = userService;
         _messenger = messenger;
         _userEditViewModelFactory = userEditViewModelFactory;
         _userEditWindowFactory = userEditWindowFactory;
+        _settingsViewModelFactory = settingsViewModelFactory;
+        _settingsWindowFactory = settingsWindowFactory;
 
         //for (int i = 0; i < MaxLogs; i++)
         //{
@@ -98,6 +104,19 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
         AddLog($"打开编辑用户窗口: {SelectedUser.Name} (ID: {SelectedUser.Id})");
         var vm = _userEditViewModelFactory(SelectedUser);
         var window = _userEditWindowFactory(vm);
+        var owner = GetOwnerWindow();
+        if (owner is not null)
+            await window.ShowDialog(owner);
+        else
+            window.Show();
+    }
+
+    [RelayCommand]
+    private async Task OpenSettingsAsync()
+    {
+        AddLog("打开设置页面");
+        var vm = _settingsViewModelFactory();
+        var window = _settingsWindowFactory(vm);
         var owner = GetOwnerWindow();
         if (owner is not null)
             await window.ShowDialog(owner);

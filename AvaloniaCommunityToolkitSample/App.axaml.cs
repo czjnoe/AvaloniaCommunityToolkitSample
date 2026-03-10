@@ -52,6 +52,8 @@ namespace AvaloniaCommunityToolkitSample
 
             // ViewModels
             services.AddTransient<MainWindowViewModel>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<Func<SettingsViewModel>>(sp => () => sp.GetRequiredService<SettingsViewModel>());
             // 工厂：User? -> UserEditViewModel
             services.AddTransient<Func<Models.User?, UserEditViewModel>>(sp =>
             {
@@ -62,6 +64,10 @@ namespace AvaloniaCommunityToolkitSample
             // 工厂：UserEditViewModel -> UserEditWindow
             services.AddTransient<Func<UserEditViewModel, UserEditWindow>>(sp =>
                 vm => new UserEditWindow(vm));
+
+            // 工厂：SettingsViewModel -> SettingsWindow
+            services.AddTransient<Func<SettingsViewModel, SettingsWindow>>(sp =>
+                vm => new SettingsWindow(vm));
         }
 
         private void DisableAvaloniaDataAnnotationValidation()
