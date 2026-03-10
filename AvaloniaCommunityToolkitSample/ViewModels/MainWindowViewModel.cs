@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using AvaloniaCommunityToolkitSample.Models;
@@ -6,6 +6,7 @@ using AvaloniaCommunityToolkitSample.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using ObservableCollections;
 
 namespace AvaloniaCommunityToolkitSample.ViewModels;
 
@@ -18,6 +19,14 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     private readonly IMessenger _messenger;
     private readonly Func<User?, UserEditViewModel> _userEditViewModelFactory;
     private readonly Func<UserEditViewModel, Views.UserEditWindow> _userEditWindowFactory;
+
+    private const int MaxLogs = 100;
+    private readonly ObservableFixedSizeRingBuffer<string> _logBuffer = new(MaxLogs);
+
+    /// <summary>
+    /// 日志列表，用于 UI 绑定（ObservableCollections 的 NotifyCollectionChangedSynchronizedViewList 视图）
+    /// </summary>
+    public NotifyCollectionChangedSynchronizedViewList<string> LogInfos { get; }
 
     [ObservableProperty]
     private ObservableCollection<User> _users = new();
@@ -36,9 +45,23 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
         _userEditViewModelFactory = userEditViewModelFactory;
         _userEditWindowFactory = userEditWindowFactory;
 
+        //for (int i = 0; i < MaxLogs; i++)
+        //{
+        //    _logBuffer.AddFirst(i.ToString());
+        //}
+
+        LogInfos = _logBuffer.ToNotifyCollectionChanged();
+
         // WeakReferenceMessenger.Default.Register - 注册接收 UserSavedMessage
         _messenger.Register<Messages.UserSavedMessage>(this);
+        AddLog("应用启动，加载用户列表");
         LoadUsers();
+    }
+
+    private void AddLog(string message)
+    {
+        var timestamp = DateTime.Now.ToString("HH:mm:ss");
+        _logBuffer.AddLast($"[{timestamp}] {message}");
     }
 
     private void LoadUsers()
@@ -46,6 +69,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
         Users.Clear();
         foreach (var user in _userService.GetAllUsers())
             Users.Add(user);
+        AddLog($"已加载 {Users.Count} 个用户");
     }
 
     /// <summary>
@@ -54,6 +78,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     [RelayCommand]
     private async Task AddUserAsync()
     {
+        AddLog("打开新增用户窗口");
         var vm = _userEditViewModelFactory(null);
         var window = _userEditWindowFactory(vm);
         var owner = GetOwnerWindow();
@@ -70,6 +95,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     private async Task EditUserAsync()
     {
         if (SelectedUser is null) return;
+        AddLog($"打开编辑用户窗口: {SelectedUser.Name} (ID: {SelectedUser.Id})");
         var vm = _userEditViewModelFactory(SelectedUser);
         var window = _userEditWindowFactory(vm);
         var owner = GetOwnerWindow();
@@ -93,9 +119,15 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     public void Receive(Messages.UserSavedMessage message)
     {
         if (message.IsNew)
+        {
             _userService.AddUser(message.Value);
+            AddLog($"新增用户: {message.Value.Name} (ID: {message.Value.Id})");
+        }
         else
+        {
             _userService.UpdateUser(message.Value);
+            AddLog($"更新用户: {message.Value.Name} (ID: {message.Value.Id})");
+        }
         LoadUsers();
     }
 

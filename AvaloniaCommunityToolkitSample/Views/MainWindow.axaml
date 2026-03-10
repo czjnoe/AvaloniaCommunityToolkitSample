@@ -4,12 +4,12 @@
         xmlns:model="using:AvaloniaCommunityToolkitSample.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="AvaloniaCommunityToolkitSample.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="用户管理 - AvaloniaCommunityToolkitSample"
-        Width="800" Height="500">
+        Width="800" Height="600">
 
     <DockPanel Margin="16">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,16">
@@ -17,22 +17,51 @@
             <Button Content="编辑用户" Command="{Binding EditUserCommand}"/>
         </StackPanel>
 
-        <DataGrid ItemsSource="{Binding Users}"
-                  SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
-                  IsReadOnly="True"
-                  GridLinesVisibility="Horizontal"
-                  BorderThickness="1"
-                  BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                  CanUserReorderColumns="True"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="True"
-                  AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
-                <DataGridTextColumn Header="姓名" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="邮箱" Binding="{Binding Email}" Width="*"/>
-                <DataGridTextColumn Header="电话" Binding="{Binding Phone}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Grid RowDefinitions="*,Auto">
+            <DataGrid Grid.Row="0"
+                      ItemsSource="{Binding Users}"
+                      SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      BorderThickness="1"
+                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                    <DataGridTextColumn Header="姓名" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="邮箱" Binding="{Binding Email}" Width="*"/>
+                    <DataGridTextColumn Header="电话" Binding="{Binding Phone}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Border Grid.Row="1" 
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="8,8"
+                    Margin="0,8,0,0">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Grid.Row="0" Text="操作日志" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <ListBox Grid.Row="1" 
+                             ItemsSource="{Binding LogInfos}"
+                             MaxHeight="120"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             Background="Transparent"
+                             BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" 
+                                           FontFamily="Consolas"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
     </DockPanel>
 </Window>
