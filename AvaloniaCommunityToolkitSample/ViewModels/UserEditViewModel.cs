@@ -19,6 +19,11 @@ public partial class UserEditViewModel : ViewModelBase, IDisposable
     [NotifyPropertyChangedFor(nameof(DisplayTitle))]
     private bool _isEditMode;
 
+    partial void OnIsEditModeChanged(bool value)
+    {
+
+    }
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private string _name = string.Empty;
