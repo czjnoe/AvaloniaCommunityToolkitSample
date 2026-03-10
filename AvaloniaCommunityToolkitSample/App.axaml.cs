@@ -9,6 +9,7 @@ using AvaloniaCommunityToolkitSample.Models;
 using AvaloniaCommunityToolkitSample.Services;
 using AvaloniaCommunityToolkitSample.ViewModels;
 using AvaloniaCommunityToolkitSample.Views;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,6 +31,10 @@ namespace AvaloniaCommunityToolkitSample
             ConfigureServices(services);
             Services = services.BuildServiceProvider();
 
+            // CommunityToolkit内置IOC
+            Ioc.Default.ConfigureServices(Services);
+            var userService = Ioc.Default.GetRequiredService<IUserService>();
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 DisableAvaloniaDataAnnotationValidation();
@@ -50,24 +55,10 @@ namespace AvaloniaCommunityToolkitSample
             // Messenger - 使用 WeakReferenceMessenger
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
-            // ViewModels
+            // ViewModels / Views
             services.AddTransient<MainWindowViewModel>();
             services.AddTransient<SettingsViewModel>();
-            services.AddTransient<Func<SettingsViewModel>>(sp => () => sp.GetRequiredService<SettingsViewModel>());
-            // 工厂：User? -> UserEditViewModel
-            services.AddTransient<Func<Models.User?, UserEditViewModel>>(sp =>
-            {
-                var messenger = sp.GetRequiredService<IMessenger>();
-                return (Models.User? user) => new UserEditViewModel(user, messenger);
-            });
-
-            // 工厂：UserEditViewModel -> UserEditWindow
-            services.AddTransient<Func<UserEditViewModel, UserEditWindow>>(sp =>
-                vm => new UserEditWindow(vm));
-
-            // 工厂：SettingsViewModel -> SettingsWindow
-            services.AddTransient<Func<SettingsViewModel, SettingsWindow>>(sp =>
-                vm => new SettingsWindow(vm));
+            services.AddTransient<SettingsWindow>();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

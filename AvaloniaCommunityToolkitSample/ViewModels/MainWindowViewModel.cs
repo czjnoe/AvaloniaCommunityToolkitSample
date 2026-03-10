@@ -6,6 +6,7 @@ using AvaloniaCommunityToolkitSample.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using ObservableCollections;
 
 namespace AvaloniaCommunityToolkitSample.ViewModels;
@@ -15,12 +16,9 @@ namespace AvaloniaCommunityToolkitSample.ViewModels;
 /// </summary>
 public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.UserSavedMessage>
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly IUserService _userService;
     private readonly IMessenger _messenger;
-    private readonly Func<User?, UserEditViewModel> _userEditViewModelFactory;
-    private readonly Func<UserEditViewModel, Views.UserEditWindow> _userEditWindowFactory;
-    private readonly Func<SettingsViewModel> _settingsViewModelFactory;
-    private readonly Func<SettingsViewModel, Views.SettingsWindow> _settingsWindowFactory;
 
     private const int MaxLogs = 100;
     private readonly ObservableFixedSizeRingBuffer<string> _logBuffer = new(MaxLogs);
@@ -37,19 +35,13 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     private User? _selectedUser;
 
     public MainWindowViewModel(
+        IServiceProvider serviceProvider,
         IUserService userService,
-        IMessenger messenger,
-        Func<User?, UserEditViewModel> userEditViewModelFactory,
-        Func<UserEditViewModel, Views.UserEditWindow> userEditWindowFactory,
-        Func<SettingsViewModel> settingsViewModelFactory,
-        Func<SettingsViewModel, Views.SettingsWindow> settingsWindowFactory)
+        IMessenger messenger)
     {
+        _serviceProvider = serviceProvider;
         _userService = userService;
         _messenger = messenger;
-        _userEditViewModelFactory = userEditViewModelFactory;
-        _userEditWindowFactory = userEditWindowFactory;
-        _settingsViewModelFactory = settingsViewModelFactory;
-        _settingsWindowFactory = settingsWindowFactory;
 
         //for (int i = 0; i < MaxLogs; i++)
         //{
@@ -85,8 +77,9 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     private async Task AddUserAsync()
     {
         AddLog("打开新增用户窗口");
-        var vm = _userEditViewModelFactory(null);
-        var window = _userEditWindowFactory(vm);
+        var messenger = _serviceProvider.GetRequiredService<IMessenger>();
+        var vm = new UserEditViewModel(null, messenger);
+        var window = new Views.UserEditWindow(vm);
         var owner = GetOwnerWindow();
         if (owner is not null)
             await window.ShowDialog(owner);
@@ -102,8 +95,9 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     {
         if (SelectedUser is null) return;
         AddLog($"打开编辑用户窗口: {SelectedUser.Name} (ID: {SelectedUser.Id})");
-        var vm = _userEditViewModelFactory(SelectedUser);
-        var window = _userEditWindowFactory(vm);
+        var messenger = _serviceProvider.GetRequiredService<IMessenger>();
+        var vm = new UserEditViewModel(SelectedUser, messenger);
+        var window = new Views.UserEditWindow(vm);
         var owner = GetOwnerWindow();
         if (owner is not null)
             await window.ShowDialog(owner);
@@ -115,8 +109,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Messages.Us
     private async Task OpenSettingsAsync()
     {
         AddLog("打开设置页面");
-        var vm = _settingsViewModelFactory();
-        var window = _settingsWindowFactory(vm);
+        var window = _serviceProvider.GetRequiredService<Views.SettingsWindow>();
         var owner = GetOwnerWindow();
         if (owner is not null)
             await window.ShowDialog(owner);
